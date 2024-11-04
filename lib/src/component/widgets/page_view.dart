@@ -3,6 +3,7 @@ part of 'package:nested_scroll_views/src/assembly/widgets/page_view.dart';
 class NestedPageView extends PageView {
   /// 是否缓存可滚动页面，不缓存可能导致页面在嵌套滚动时被销毁导致手势事件丢失
   final bool wantKeepAlive;
+  final bool Function(DragEndDetails details)? isScrollable;
 
   NestedPageView({
     super.key,
@@ -21,6 +22,7 @@ class NestedPageView extends PageView {
     super.scrollBehavior,
     super.padEnds,
     this.wantKeepAlive = true,
+    this.isScrollable,
   });
 
   NestedPageView.builder({
@@ -42,6 +44,7 @@ class NestedPageView extends PageView {
     super.scrollBehavior,
     super.padEnds,
     this.wantKeepAlive = true,
+    this.isScrollable,
   }) : super.builder();
 
   const NestedPageView.custom({
@@ -61,6 +64,7 @@ class NestedPageView extends PageView {
     super.scrollBehavior,
     super.padEnds,
     this.wantKeepAlive = true,
+    this.isScrollable,
   }) : super.custom();
 
   @override
@@ -127,7 +131,11 @@ class _NestedPageViewState extends _PageViewState {
 
     // 处理滚动结束事件
     if (notification is ScrollEndNotification) {
-      if (notification.dragDetails != null) {
+      if (notification.dragDetails != null &&
+          ((widget as NestedPageView)
+                  .isScrollable
+                  ?.call(notification.dragDetails!) ??
+              true)) {
         // 滚动结束时还有额外的滚动数据，需要继续处理，如：子组件快速滑动切换到父组件
         _dragController?.end(notification.dragDetails!);
       } else {
